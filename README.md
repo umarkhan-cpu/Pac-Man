@@ -7,4 +7,4 @@
 5. Add a high score table to keep track of the best score.
 6. Randomly generate the maze layout(symmetrical) for each new game to increase replayability.
 7. Maybe a feature to allow the player to adjust the game speed.
-8. Maybe a 2-player mode where one player controls Pacman and the other controls the ghosts.
+8. Maybe a 2-player mode with either a Pacman vs Pacman or Pacman vs Ghosts format.
