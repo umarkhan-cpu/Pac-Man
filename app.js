@@ -31,25 +31,25 @@ let gameOver = false;
 
 function loadImages() {
     wallImage = new Image();
-    wallImage.src = ".img/wall.png";
+    wallImage.src = "images/wall.png";
 
     blueGhostImage = new Image();
-    blueGhostImage.src = ".img/blueGhost.png";
+    blueGhostImage.src = "images/blueGhost.png";
     orangeGhostImage = new Image();
-    orangeGhostImage.src = ".img/orangeGhost.png"
+    orangeGhostImage.src = "images/orangeGhost.png"
     pinkGhostImage = new Image()
-    pinkGhostImage.src = ".img/pinkGhost.png";
+    pinkGhostImage.src = "images/pinkGhost.png";
     redGhostImage = new Image()
-    redGhostImage.src = ".img/redGhost.png";
+    redGhostImage.src = "images/redGhost.png";
 
     pacmanUpImage = new Image();
-    pacmanUpImage.src = ".img/pacmanUp.png";
+    pacmanUpImage.src = "images/pacmanUp.png";
     pacmanDownImage = new Image();
-    pacmanDownImage.src = ".img/pacmanDown.png";
+    pacmanDownImage.src = "images/pacmanDown.png";
     pacmanLeftImage = new Image();
-    pacmanLeftImage.src = ".img/pacmanLeft.png";
+    pacmanLeftImage.src = "images/pacmanLeft.png";
     pacmanRightImage = new Image();
-    pacmanRightImage.src = ".img/pacmanRight.png";
+    pacmanRightImage.src = "images/pacmanRight.png";
 }
 
 // common class for all game elements
