@@ -1,7 +1,7 @@
 # Suggested Improvements:
 
 1. Add sound effects & background music.
-2. Fix unexpected refreshes and turning difficulty(if possible).
+2. Fix turning difficulty.
 3. Add special effects such as a power food, scared ghost & cherry.
 4. Add a turn decision for the ghosts to allow them to make random decisions about which direction to go at each turn/intersection.
 5. Add a pause button, game instructions and menu/end screens.

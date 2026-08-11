@@ -269,15 +269,19 @@ function movePacman(evt) {
     }
 
     if (evt.code === "ArrowUp" || evt.code === "KeyW") {
+        evt.preventDefault();
         pacman.updateDirection('U');
     }
     else if (evt.code === "ArrowDown" || evt.code === "KeyS") {
+        evt.preventDefault();
         pacman.updateDirection('D');
     }
     else if (evt.code === "ArrowLeft" || evt.code === "KeyA") {
+        evt.preventDefault();
         pacman.updateDirection('L');
     }
     else if (evt.code === "ArrowRight" || evt.code === "KeyD") {
+        evt.preventDefault();
         pacman.updateDirection('R');
     }
 
