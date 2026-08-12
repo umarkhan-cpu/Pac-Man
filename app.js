@@ -24,10 +24,12 @@ const ghosts = new Set();
 const foods = new Set();
 let pacman;
 
+// game state variales
 const directions = ['U', 'D', 'L', 'R'];
 let score = 0;
 let lives = 3;
 let gameOver = false;
+let queuedDirection = null;
 
 function loadImages() {
     wallImage = new Image();
@@ -259,13 +261,12 @@ function move() {
 }
 
 function movePacman(evt) {
-    if (gameOver) {
+    if (gameOver) { // reset upon game over
         loadMap();
         resetPositions();
         lives = 3;
         score = 0;
         gameOver = false;
-        update(); // restart game loop
     }
 
     if (evt.code === "ArrowUp" || evt.code === "KeyW") {
@@ -343,10 +344,9 @@ function resetPositions() {
 }
 
 function update() { // game loop
-    if (gameOver) 
-        return;
-
-    move();
+    if (!gameOver) {
+        move();
+    }
     draw();
     setTimeout(update, 50); // 20 FPS -> 1000ms/20 = 50ms
 }
