@@ -31,6 +31,21 @@ let lives = 3;
 let gameOver = false;
 let queuedDirection = null;
 
+// to update score & lives display
+let livesElement;
+let scoreElement;
+
+function updateStats() {
+    if (gameOver) {
+        livesElement.textContent = "Game Over!";
+        scoreElement.textContent = "Final Score: " + String(score);
+    }
+    else {
+        livesElement.textContent = "Lives: " + String(lives);
+        scoreElement.textContent = "Score: " + String(score);
+    }
+}
+
 function loadImages() {
     wallImage = new Image();
     wallImage.src = "images/wall.png";
@@ -188,15 +203,7 @@ function draw() {
         ctx.fillRect(food.x, food.y, food.width, food.height);
     }
 
-    // write score & lives
-    ctx.fillStyle = "white";
-    ctx.font="14px sans-serif";
-    if (gameOver) {
-        ctx.fillText("Game Over! Final Score:" + String(score), tileSize / 4, tileSize / 2);
-    }
-    else {
-        ctx.fillText("Lives:" + String(lives) + " Score:" + String(score), tileSize / 4, tileSize / 2);
-    }
+    updateStats();
 }
 
 function move() {
@@ -372,6 +379,8 @@ function update() { // game loop
 
 window.onload = () => {
     board = document.querySelector("#board");
+    livesElement = document.getElementById("lives");
+    scoreElement = document.getElementById("score");
 
     // board size derived from the tile map to match the canvas size exactly
     rows = tileMap.length;

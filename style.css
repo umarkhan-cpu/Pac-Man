@@ -9,6 +9,23 @@ body {
     justify-content: center;
     align-items: center;
     background: black;
+    position: relative;
+    overflow: hidden
+}
+
+#stats {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    color: white;
+    font-family: sans-serif;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+}
+
+#lives, #score {
+    font-size: 14px;
 }
 
 #board {

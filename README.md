@@ -39,8 +39,8 @@ Core gameplay (movement, collision, scoring, lives) is working. See below for pl
 1. Add sound effects and background music.
 2. Add special effects: power food, scared ghosts, cherry.
 3. Ghosts make turn decisions at intersections instead of only turning on collision.
-4. Add a pause button, instructions, and menu/end screens.
-5. Add a high score table.
+4. Persist and show best score on the Game Over screen.
+5. Redesign with proper start/game-over screens, pause, instructions, and a full high score table.
 6. Randomly generate a symmetrical maze each game.
 7. Adjustable game speed.
 8. Two-player mode.
