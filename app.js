@@ -73,6 +73,7 @@ class Block {
 
     updateDirection(direction) {
         const prevDirection = this.direction;
+        let isWall = false;
         this.direction = direction;
         this.updateVelocity();
         this.x += this.velocityX;
@@ -80,12 +81,18 @@ class Block {
 
         for (let wall of walls) {
             if (collision(this, wall)) {
+                isWall = true;
                 this.x -= this.velocityX;
                 this.y -= this.velocityY;
                 this.direction = prevDirection;
                 this.updateVelocity();
                 return;
             }
+        }
+
+        if(!isWall) {
+            this.x -= this.velocityX;
+            this.y -= this.velocityY;
         }
     }
 
@@ -193,6 +200,10 @@ function draw() {
 }
 
 function move() {
+    if (queuedDirection) {
+        pacman.updateDirection(queuedDirection); 
+    }
+
     pacman.x += pacman.velocityX;
     pacman.y += pacman.velocityY;
 
@@ -205,6 +216,11 @@ function move() {
         }
     }
     
+    if (pacman.direction === queuedDirection) { // successfull movement/turn
+        queuedDirection = null;
+        updatePacmanImage();
+    }
+
     // boundary check
     detectBoundary(pacman);
 
@@ -271,22 +287,23 @@ function movePacman(evt) {
 
     if (evt.code === "ArrowUp" || evt.code === "KeyW") {
         evt.preventDefault();
-        pacman.updateDirection('U');
+        queuedDirection = 'U';
     }
     else if (evt.code === "ArrowDown" || evt.code === "KeyS") {
         evt.preventDefault();
-        pacman.updateDirection('D');
+        queuedDirection = 'D';
     }
     else if (evt.code === "ArrowLeft" || evt.code === "KeyA") {
         evt.preventDefault();
-        pacman.updateDirection('L');
+        queuedDirection = 'L';
     }
     else if (evt.code === "ArrowRight" || evt.code === "KeyD") {
         evt.preventDefault();
-        pacman.updateDirection('R');
+        queuedDirection = 'R';
     }
+}
 
-    // update pacman image
+function updatePacmanImage() {
     if (pacman.direction === 'U') {
         pacman.image = pacmanUpImage;
     }
@@ -298,6 +315,20 @@ function movePacman(evt) {
     }
     else if (pacman.direction === 'R') {
         pacman.image = pacmanRightImage;
+    }
+}
+
+function resetPositions() {
+    pacman.reset();
+    pacman.velocityX = 0;
+    pacman.velocityY = 0;
+    pacman.direction = 'R';
+    updatePacmanImage();
+
+    for (let ghost of ghosts) {
+        ghost.reset();
+        const newDirection = directions[Math.floor(Math.random() * 4)];
+        ghost.updateDirection(newDirection);
     }
 }
 
@@ -328,18 +359,6 @@ function detectBoundary(object) {
     // bottom boundary
     else if (object.y + object.height > boardHeight) {
         object.y = 0;
-    }
-}
-
-function resetPositions() {
-    pacman.reset();
-    pacman.velocityX = 0;
-    pacman.velocityY = 0;
-
-    for (let ghost of ghosts) {
-        ghost.reset();
-        const newDirection = directions[Math.floor(Math.random() * 4)];
-        ghost.updateDirection(newDirection);
     }
 }
 
@@ -374,5 +393,5 @@ window.onload = () => {
     }
     update();
 
-    document.addEventListener("keyup", movePacman);
+    document.addEventListener("keydown", movePacman);
 }
