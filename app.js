@@ -28,21 +28,25 @@ let pacman;
 const directions = ['U', 'D', 'L', 'R'];
 let score = 0;
 let lives = 3;
+let bestScore;
 let gameOver = false;
 let queuedDirection = null;
 
 // to update score & lives display
 let livesElement;
 let scoreElement;
+let bestScoreElement;
 
 function updateStats() {
     if (gameOver) {
         livesElement.textContent = "Game Over!";
         scoreElement.textContent = "Final Score: " + String(score);
+        bestScoreElement.textContent = "Best: " + String(bestScore);
     }
     else {
         livesElement.textContent = "Lives: " + String(lives);
         scoreElement.textContent = "Score: " + String(score);
+        bestScoreElement.textContent = "Best: " + String(bestScore);
     }
 }
 
@@ -208,7 +212,7 @@ function draw() {
 
 function move() {
     if (queuedDirection) {
-        pacman.updateDirection(queuedDirection); 
+        pacman.updateDirection(queuedDirection); // queue the next direction for pacman
     }
 
     pacman.x += pacman.velocityX;
@@ -237,6 +241,10 @@ function move() {
             lives--;
             if (lives === 0) {
                 gameOver = true;
+                if (score > bestScore) { // update best score
+                    bestScore = score;
+                    localStorage.setItem("pacmanBestScore", bestScore);
+                }
                 return;
             }
             resetPositions();
@@ -379,9 +387,11 @@ function update() { // game loop
 
 window.onload = () => {
     board = document.querySelector("#board");
-    livesElement = document.getElementById("lives");
-    scoreElement = document.getElementById("score");
-
+    livesElement = document.querySelector("#lives");
+    scoreElement = document.querySelector("#score");
+    bestScoreElement = document.querySelector("#best");
+    bestScore = parseInt(localStorage.getItem("pacmanBestScore")) || 0;  // retrieve current best score
+    
     // board size derived from the tile map to match the canvas size exactly
     rows = tileMap.length;
     cols = tileMap[0].length;
@@ -403,4 +413,10 @@ window.onload = () => {
     update();
 
     document.addEventListener("keydown", movePacman);
+    bestScoreElement.addEventListener("dblclick", () => {
+        if (confirm("Are you sure you want to reset the best score?")) {
+            bestScore = 0;
+            localStorage.setItem("pacmanBestScore", bestScore);
+        }
+    });
 }
