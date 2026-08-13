@@ -177,7 +177,7 @@ function loadMap() {
             else if (tileMapChar == 'P') { //pacman
                 pacman = new Block(pacmanRightImage, x, y, tileSize, tileSize);
             }
-            else if (tileMapChar == ' ') { //empty is food
+            else if (tileMapChar == ' ') { //white space is food
                 const food = new Block(null, x + 14, y + 14, 4, 4);
                 foods.add(food);
             }
@@ -204,7 +204,9 @@ function draw() {
     // draw food
     ctx.fillStyle = "white";
     for (let food of foods) {
-        ctx.fillRect(food.x, food.y, food.width, food.height);
+        ctx.beginPath();
+        ctx.arc(food.x, food.y, food.width / 2, 0, 2 * Math.PI);
+        ctx.fill();
     }
 
     updateStats();
@@ -249,11 +251,11 @@ function move() {
             }
             resetPositions();
         }
-
+        
         ghost.x += ghost.velocityX;
         ghost.y += ghost.velocityY;
 
-        if (ghost.y === 9 * tileSize && (ghost.direction !== 'U' || ghost.direction !== 'D')) {
+        if (ghost.y === 9 * tileSize) {
             const choice = Math.floor(Math.random() * 2);
             if (choice === 0)
                 ghost.updateDirection('U');
