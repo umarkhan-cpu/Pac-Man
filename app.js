@@ -292,12 +292,13 @@ function move() {
 }
 
 function movePacman(evt) {
-    if (gameOver) { // reset upon game over
+    if (gameOver) { // reset game after game over
         loadMap();
         resetPositions();
         lives = 3;
         score = 0;
         gameOver = false;
+        return;
     }
 
     if (evt.code === "ArrowUp" || evt.code === "KeyW") {
