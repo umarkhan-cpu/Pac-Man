@@ -85,7 +85,7 @@ class Block {
         this.startX = x; 
         this.startY = y;
 
-        this.direction = 'R';
+        this.direction = undefined;
         this.velocityX = 0;
         this.velocityY = 0;
     }
@@ -176,6 +176,7 @@ function loadMap() {
             }
             else if (tileMapChar == 'P') { //pacman
                 pacman = new Block(pacmanRightImage, x, y, tileSize, tileSize);
+                pacman.direction = 'R';
             }
             else if (tileMapChar == ' ') { //white space is food
                 const food = new Block(null, x + 14, y + 14, 4, 4);
@@ -237,7 +238,7 @@ function move() {
     // boundary check
     detectBoundary(pacman);
 
-    // ghost movement and wall collision checks
+    // ghost movement and collision checks
     for (let ghost of ghosts) {
         if (collision(ghost, pacman)) {
             lives--;
@@ -252,26 +253,23 @@ function move() {
             resetPositions();
         }
         
+        if (ghost.x % tileSize === 0 && ghost.y % tileSize === 0) { // ghost is exactly centered on a tile
+            chooseValidGhostDir(ghost);
+        }
+
+        // move ghost after chosing a valid direction
         ghost.x += ghost.velocityX;
         ghost.y += ghost.velocityY;
-
-        if (ghost.y === 9 * tileSize) {
-            const choice = Math.floor(Math.random() * 2);
-            if (choice === 0)
-                ghost.updateDirection('U');
-            else
-                ghost.updateDirection('D');
-        }
 
         for (let wall of walls) {
             if (collision(ghost, wall)) 
             {
                 ghost.x -= ghost.velocityX;
                 ghost.y -= ghost.velocityY;
-                const newDirection = directions[Math.floor(Math.random() * 4)];
-                ghost.updateDirection(newDirection);
+                break;
             }
         }
+
         detectBoundary(ghost);
     }
     
@@ -336,6 +334,61 @@ function updatePacmanImage() {
     }
 }
 
+function chooseValidGhostDir(ghost) {
+    const row = ghost.y / tileSize;
+    const col = ghost.x / tileSize;
+
+    const currDir = ghost.direction;
+    let oppDir;
+
+    // determine opposite direction
+    if (currDir === 'U') {
+        oppDir = 'D';
+    } 
+    else if (currDir === 'D') {
+        oppDir = 'U';
+    } 
+    else if (currDir === 'L') {
+        oppDir = 'R';
+    }
+    else if (currDir === 'R') {
+        oppDir = 'L';
+    }
+
+    // direction determination with wrap-arounds
+    const wrapRow = (r) => (r + rows) % rows;
+    const wrapCol = (c) => (c + cols) % cols;
+
+    const up    = tileMap[wrapRow(row - 1)][col];
+    const down  = tileMap[wrapRow(row + 1)][col];
+    const left  = tileMap[row][wrapCol(col - 1)];
+    const right = tileMap[row][wrapCol(col + 1)];
+
+    const neighbors = [
+        { dir: 'U', tile: up },
+        { dir: 'D', tile: down },
+        { dir: 'L', tile: left },
+        { dir: 'R', tile: right },
+    ];
+
+    let availableDir = [];
+
+    // find available directions not opposite to current direction
+    for (const n of neighbors) {
+        if (n.tile !== 'X' && n.dir !== oppDir) {
+            availableDir.push(n.dir);
+        }
+    }
+
+    // in case of no available direction beside opposite
+    if (availableDir.length === 0) { 
+        availableDir.push(oppDir);
+    }
+
+    ghost.direction = availableDir[Math.floor(Math.random() * availableDir.length)];
+    ghost.updateVelocity();
+}
+
 function resetPositions() {
     pacman.reset();
     pacman.velocityX = 0;
@@ -345,8 +398,6 @@ function resetPositions() {
 
     for (let ghost of ghosts) {
         ghost.reset();
-        const newDirection = directions[Math.floor(Math.random() * 4)];
-        ghost.updateDirection(newDirection);
     }
 }
 
@@ -408,11 +459,6 @@ window.onload = () => {
 
     loadImages();
     loadMap();
-
-    for (let ghost of ghosts) {
-        const newDirection = directions[Math.floor(Math.random() * 4)];
-        ghost.updateDirection(newDirection);
-    }
     update();
 
     document.addEventListener("keydown", movePacman);

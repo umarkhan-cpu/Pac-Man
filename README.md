@@ -39,8 +39,7 @@ Core gameplay (movement, collision, scoring, lives) is working. Best score persi
 
 1. Add sound effects and background music.
 2. Add special effects: power food, scared ghosts, cherry.
-3. Ghosts make turn decisions at intersections instead of only turning on collision.
-4. Redesign with proper start/game-over screens, pause, instructions, and a full high score table.
-5. Randomly generate a symmetrical maze each game.
-6. Adjustable game speed.
-7. Two-player mode.
+3. Redesign with proper start/game-over screens, pause, instructions, and a full high score table.
+4. Randomly generate a symmetrical maze each game.
+5. Adjustable game speed.
+6. Two-player mode.
