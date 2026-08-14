@@ -31,6 +31,7 @@ let lives = 3;
 let bestScore;
 let gameOver = false;
 let queuedDirection = null;
+let isPause = false;
 
 // to update score & lives display
 let livesElement;
@@ -41,6 +42,11 @@ function updateStats() {
     if (gameOver) {
         livesElement.textContent = "Game Over!";
         scoreElement.textContent = "Final Score: " + String(score);
+        bestScoreElement.textContent = "Best: " + String(bestScore);
+    }
+    else if (isPause) {
+        livesElement.textContent = "Paused";
+        scoreElement.textContent = "Score: " + String(score);
         bestScoreElement.textContent = "Best: " + String(bestScore);
     }
     else {
@@ -291,49 +297,6 @@ function move() {
     }
 }
 
-function movePacman(evt) {
-    if (gameOver) { // reset game after game over
-        loadMap();
-        resetPositions();
-        lives = 3;
-        score = 0;
-        gameOver = false;
-        return;
-    }
-
-    if (evt.code === "ArrowUp" || evt.code === "KeyW") {
-        evt.preventDefault();
-        queuedDirection = 'U';
-    }
-    else if (evt.code === "ArrowDown" || evt.code === "KeyS") {
-        evt.preventDefault();
-        queuedDirection = 'D';
-    }
-    else if (evt.code === "ArrowLeft" || evt.code === "KeyA") {
-        evt.preventDefault();
-        queuedDirection = 'L';
-    }
-    else if (evt.code === "ArrowRight" || evt.code === "KeyD") {
-        evt.preventDefault();
-        queuedDirection = 'R';
-    }
-}
-
-function updatePacmanImage() {
-    if (pacman.direction === 'U') {
-        pacman.image = pacmanUpImage;
-    }
-    else if (pacman.direction === 'D') {
-        pacman.image = pacmanDownImage;
-    }
-    else if (pacman.direction === 'L') {
-        pacman.image = pacmanLeftImage;
-    }
-    else if (pacman.direction === 'R') {
-        pacman.image = pacmanRightImage;
-    }
-}
-
 function chooseValidGhostDir(ghost) {
     const row = ghost.y / tileSize;
     const col = ghost.x / tileSize;
@@ -389,18 +352,6 @@ function chooseValidGhostDir(ghost) {
     ghost.updateVelocity();
 }
 
-function resetPositions() {
-    pacman.reset();
-    pacman.velocityX = 0;
-    pacman.velocityY = 0;
-    pacman.direction = 'R';
-    updatePacmanImage();
-
-    for (let ghost of ghosts) {
-        ghost.reset();
-    }
-}
-
 // collision detection function
 function collision(a, b) {
     return a.x < b.x + b.width &&
@@ -431,8 +382,85 @@ function detectBoundary(object) {
     }
 }
 
+function movePacman(evt) {
+    if (gameOver) {
+        return;
+    }
+
+    if (evt.code === "ArrowUp" || evt.code === "KeyW") {
+        evt.preventDefault();
+        queuedDirection = 'U';
+    }
+    else if (evt.code === "ArrowDown" || evt.code === "KeyS") {
+        evt.preventDefault();
+        queuedDirection = 'D';
+    }
+    else if (evt.code === "ArrowLeft" || evt.code === "KeyA") {
+        evt.preventDefault();
+        queuedDirection = 'L';
+    }
+    else if (evt.code === "ArrowRight" || evt.code === "KeyD") {
+        evt.preventDefault();
+        queuedDirection = 'R';
+    }
+}
+
+function updatePacmanImage() {
+    if (pacman.direction === 'U') {
+        pacman.image = pacmanUpImage;
+    }
+    else if (pacman.direction === 'D') {
+        pacman.image = pacmanDownImage;
+    }
+    else if (pacman.direction === 'L') {
+        pacman.image = pacmanLeftImage;
+    }
+    else if (pacman.direction === 'R') {
+        pacman.image = pacmanRightImage;
+    }
+}
+
+function resetPositions() {
+    pacman.reset();
+    pacman.velocityX = 0;
+    pacman.velocityY = 0;
+    pacman.direction = 'R';
+    updatePacmanImage();
+
+    for (let ghost of ghosts) {
+        ghost.reset();
+    }
+}
+
+function pauseAndReset(evt) {
+    if (gameOver) { // reset game after game over
+        loadMap();
+        resetPositions();
+        lives = 3;
+        score = 0;
+        gameOver = false;
+        isPause = false;
+        queuedDirection = null;
+        return;
+    }
+
+    if (evt.code !== "Space") {
+        return;
+    }
+
+    evt.preventDefault();
+
+    // pause and resume
+    if (!isPause) {
+        isPause = true;
+    }
+    else if (isPause) {
+        isPause = false;
+    }
+}
+
 function update() { // game loop
-    if (!gameOver) {
+    if (!gameOver && !isPause) {
         move();
     }
     draw();
@@ -468,4 +496,5 @@ window.onload = () => {
             localStorage.setItem("pacmanBestScore", bestScore);
         }
     });
+    document.addEventListener("keyup", pauseAndReset);
 }
