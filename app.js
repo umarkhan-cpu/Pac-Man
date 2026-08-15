@@ -1,3 +1,5 @@
+"use strict";
+
 // board
 const tileSize = 32;
 let board;
@@ -19,10 +21,11 @@ let pacmanRightImage;
 let wallImage;
 
 // game elements
+let pacman;
 const walls = new Set(); 
 const ghosts = new Set();
 const foods = new Set();
-let pacman;
+const powFoods = new Set();
 
 // game state variales
 const directions = ['U', 'D', 'L', 'R'];
@@ -160,33 +163,37 @@ function loadMap() {
             const x = c * tileSize;
             const y = r  * tileSize;
 
-            if (tileMapChar == 'X') { //block wall
+            if (tileMapChar === 'X') { //block wall
                 const wall = new Block(wallImage, x, y, tileSize, tileSize);
                 walls.add(wall);  
             }
-            else if (tileMapChar == 'b') { //blue ghost
+            else if (tileMapChar === 'b') { //blue ghost
                 const ghost = new Block(blueGhostImage, x, y, tileSize, tileSize);
                 ghosts.add(ghost);
             }
-            else if (tileMapChar == 'o') { //orange ghost
+            else if (tileMapChar === 'o') { //orange ghost
                 const ghost = new Block(orangeGhostImage, x, y, tileSize, tileSize);
                 ghosts.add(ghost);
             }
-            else if (tileMapChar == 'p') { //pink ghost
+            else if (tileMapChar === 'p') { //pink ghost
                 const ghost = new Block(pinkGhostImage, x, y, tileSize, tileSize);
                 ghosts.add(ghost);
             }
-            else if (tileMapChar == 'r') { //red ghost
+            else if (tileMapChar === 'r') { //red ghost
                 const ghost = new Block(redGhostImage, x, y, tileSize, tileSize);
                 ghosts.add(ghost);
             }
-            else if (tileMapChar == 'P') { //pacman
+            else if (tileMapChar === 'P') { //pacman
                 pacman = new Block(pacmanRightImage, x, y, tileSize, tileSize);
                 pacman.direction = 'R';
             }
-            else if (tileMapChar == ' ') { //white space is food
-                const food = new Block(null, x + 13.5, y + 13.5, 5, 5);
+            else if (tileMapChar === ' ') { //white space is food
+                const food = new Block(null, x + 16, y + 16, 5, 5);
                 foods.add(food);
+            }
+            else if (tileMapChar === 'F') { // power food
+                const powFood = new Block(null, x + 16, y + 16, 16, 16);
+                powFoods.add(powFood);
             }
         }
     }
@@ -205,6 +212,13 @@ function draw() {
     for (let food of foods) {
         ctx.beginPath();
         ctx.arc(food.x, food.y, food.width / 2, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+
+    // draw power food
+    for (let powFood of powFoods) {
+        ctx.beginPath();
+        ctx.arc(powFood.x, powFood.y, powFood.width / 2, 0, 2 * Math.PI);
         ctx.fill();
     }
 
@@ -289,6 +303,17 @@ function move() {
         }
     }
     foods.delete(foodEaten);
+
+    // check power food collision
+    let powFoodEaten = null;
+    for (let powFood of powFoods) {
+        if (collision(pacman, powFood)) {
+            powFoodEaten = powFood;
+            score += 50;  
+            break;
+        }
+    }
+    powFoods.delete(powFoodEaten);
 
      // next level
     if (foods.size === 0) {

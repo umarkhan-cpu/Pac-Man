@@ -5,7 +5,7 @@ const tileMap = [
     "XXXXXXXXXXXXXXXXXXX",
     "X        X        X",
     "X XX XXX X XXX XX X",
-    "X                 X",
+    "XF               FX",
     "X XX X XXXXX X XX X",
     "X    X       X    X",
     "XXXX XXXX XXXX XXXX",
@@ -19,7 +19,7 @@ const tileMap = [
     "X XX XXX X XXX XX X",
     "X  X     P     X  X",
     "XX X X XXXXX X X XX",
-    "X    X   X   X    X",
+    "XF   X   X   X   FX",
     "X XXXXXX X XXXXXX X",
     "X                 X",
     "XXXXXXXXXXXXXXXXXXX" 
