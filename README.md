@@ -43,5 +43,4 @@ Core gameplay (movement, collision, scoring, lives) is working. Game can be paus
 3. More advanced ghost AI (scatter/chase modes, pathfinding)
 4. Redesign with proper start/game-over screens, instructions, and a full high score table.
 5. Randomly generate a symmetrical maze each game.
-6. Adjustable game speed.
-7. Two-player mode.
+6. Two-player mode.
