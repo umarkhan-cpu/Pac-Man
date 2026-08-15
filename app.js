@@ -185,7 +185,7 @@ function loadMap() {
                 pacman.direction = 'R';
             }
             else if (tileMapChar == ' ') { //white space is food
-                const food = new Block(null, x + 14, y + 14, 4, 4);
+                const food = new Block(null, x + 13.5, y + 13.5, 5, 5);
                 foods.add(food);
             }
         }
@@ -194,14 +194,6 @@ function loadMap() {
 
 function draw() {
     ctx.clearRect(0, 0, boardWidth, boardHeight);
-
-    // draw pacman
-    ctx.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height);
-
-    // draw ghosts
-    for (let ghost of ghosts) {
-        ctx.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height);
-    }
 
     // draw walls
     for (let wall of walls) {
@@ -215,6 +207,14 @@ function draw() {
         ctx.arc(food.x, food.y, food.width / 2, 0, 2 * Math.PI);
         ctx.fill();
     }
+
+    // draw ghosts
+    for (let ghost of ghosts) {
+        ctx.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height);
+    }
+
+    // draw pacman
+    ctx.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height);
 
     updateStats();
 }
