@@ -1,4 +1,4 @@
-//X = wall, O = skip, P = pacman, ' ' = food
+//X = wall, O = skip, P = pacman, ' ' = food, F = power food
 //Ghosts: b = blue, o = orange, p = pink, r = red
 
 const tileMap = [

@@ -14,6 +14,8 @@ let blueGhostImage;
 let orangeGhostImage;
 let pinkGhostImage;
 let redGhostImage;
+let scaredGhostImage;
+let flashGhostImage;
 let pacmanUpImage;
 let pacmanDownImage;
 let pacmanLeftImage;
@@ -35,6 +37,12 @@ let bestScore;
 let gameOver = false;
 let queuedDirection = null;
 let isPause = false;
+let isScared = false;
+const SCARED_DURATION = 140; // 7s at 50ms/tick
+const FLASH_COUNT = 40;
+let scaredTimer = 0;
+let isFlashing = false;
+let powFoodisWhite = true;
 
 // to update score & lives display
 let livesElement;
@@ -71,6 +79,10 @@ function loadImages() {
     pinkGhostImage.src = "images/pinkGhost.png";
     redGhostImage = new Image()
     redGhostImage.src = "images/redGhost.png";
+    scaredGhostImage = new Image();
+    scaredGhostImage.src = "images/scaredGhost.png";
+    flashGhostImage = new Image();
+    flashGhostImage.src = "images/flashingGhost.png";
 
     pacmanUpImage = new Image();
     pacmanUpImage.src = "images/pacmanUp.png";
@@ -86,6 +98,9 @@ function loadImages() {
 class Block {
     constructor(image, x, y, width, height) {
         this.image = image;
+        this.normalImage = undefined; // for ghosts
+        this.isActive = false; // for power pellets
+
         this.x = x;
         this.y = y;
         this.width = width;
@@ -149,11 +164,26 @@ class Block {
     }
 }
 
+function activatePowFoods() {
+    const powFoodArr = Array.from(powFoods); // convert Set to array for indexing
+
+    let n1 = Math.floor(Math.random() * powFoodArr.length);
+    let n2 = Math.floor(Math.random() * powFoodArr.length);
+
+    while(n1 === n2) {
+        n2 = Math.floor(Math.random() * powFoodArr.length);
+    }
+
+    powFoodArr[n1].isActive = true;
+    powFoodArr[n2].isActive = true;
+}
+
 // create game elements with initial x & y positions
 function loadMap() {
     walls.clear();
     foods.clear();
     ghosts.clear();
+    powFoods.clear();
 
      for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
@@ -169,18 +199,22 @@ function loadMap() {
             }
             else if (tileMapChar === 'b') { //blue ghost
                 const ghost = new Block(blueGhostImage, x, y, tileSize, tileSize);
+                ghost.normalImage = blueGhostImage;
                 ghosts.add(ghost);
             }
             else if (tileMapChar === 'o') { //orange ghost
                 const ghost = new Block(orangeGhostImage, x, y, tileSize, tileSize);
+                ghost.normalImage = orangeGhostImage;
                 ghosts.add(ghost);
             }
             else if (tileMapChar === 'p') { //pink ghost
                 const ghost = new Block(pinkGhostImage, x, y, tileSize, tileSize);
+                ghost.normalImage = pinkGhostImage;
                 ghosts.add(ghost);
             }
             else if (tileMapChar === 'r') { //red ghost
                 const ghost = new Block(redGhostImage, x, y, tileSize, tileSize);
+                ghost.normalImage = redGhostImage;
                 ghosts.add(ghost);
             }
             else if (tileMapChar === 'P') { //pacman
@@ -197,7 +231,8 @@ function loadMap() {
             }
         }
     }
-} 
+    activatePowFoods(); // give 2 random power pellets the ability to make pac-man immune
+}
 
 function draw() {
     ctx.clearRect(0, 0, boardWidth, boardHeight);
@@ -258,9 +293,52 @@ function move() {
     // boundary check
     detectBoundary(pacman);
 
+    // check power food collision
+    let powFoodEaten = null;
+    for (let powFood of powFoods) {
+        if (collision(pacman, powFood)) {
+            powFoodEaten = powFood;
+            score += 50;
+            if (powFood.isActive) {
+                isScared = true;
+                scaredTimer = SCARED_DURATION; // resets even if already scared
+                for (let ghost of ghosts) {
+                    ghost.image = scaredGhostImage;
+                }
+            }
+            break;
+        }
+    }
+    powFoods.delete(powFoodEaten);
+
+    // countdown scared timer
+    if (isScared) {
+        scaredTimer--;
+        if (scaredTimer <= FLASH_COUNT && scaredTimer > 0 && scaredTimer % 4 === 0) {
+            if (isFlashing) {
+                for (let ghost of ghosts) {
+                    ghost.image = flashGhostImage;
+                }
+                isFlashing = false;
+            }
+            else {
+                for (let ghost of ghosts) {
+                    ghost.image = scaredGhostImage;
+                }
+                isFlashing = true;
+            }
+        } 
+        else if (scaredTimer === 0) {
+            for (let ghost of ghosts) {
+                ghost.image = ghost.normalImage;
+            }
+            isScared = false;
+        }
+    }
+
     // ghost movement and collision checks
     for (let ghost of ghosts) {
-        if (collision(ghost, pacman)) {
+        if (collision(ghost, pacman) && !isScared) {
             lives--;
             if (lives === 0) {
                 gameOver = true;
@@ -304,21 +382,12 @@ function move() {
     }
     foods.delete(foodEaten);
 
-    // check power food collision
-    let powFoodEaten = null;
-    for (let powFood of powFoods) {
-        if (collision(pacman, powFood)) {
-            powFoodEaten = powFood;
-            score += 50;  
-            break;
-        }
-    }
-    powFoods.delete(powFoodEaten);
-
-     // next level
+    // next level
     if (foods.size === 0) {
-        loadMap();
-        resetPositions(); 
+        loadMap(); 
+        resetPositions();
+        isScared = false;
+        scaredTimer = 0; 
     }
 }
 
@@ -466,6 +535,8 @@ function pauseAndReset(evt) {
         gameOver = false;
         isPause = false;
         queuedDirection = null;
+        isScared = false;
+        scaredTimer = 0;
         return;
     }
 

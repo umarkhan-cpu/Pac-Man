@@ -29,18 +29,23 @@ Then visit `http://localhost:8000`.
 - `app.js` - game loop, entity logic, collision, and input handling
 - `tileMap.js` - the maze layout
 - `style.css` - page styling
-- `images/` - sprites (Pac-Man, ghosts, walls, cherry, scared ghost)
+- `images/` - sprites (Pac-Man, ghosts, walls, cherry, scared/flashing ghost)
 - `audios/` - sound effect and music files
 
 ## Status
 
-Core gameplay (movement, collision, scoring, lives) is working. Game can be paused/resumed with Space. Best score persists across sessions via localStorage. See below for planned improvements.
+Core gameplay (movement, collision, scoring, lives) is working. Game can be paused/resumed with Space. Best score persists across sessions via localStorage.
+
+Power pellets are in: 2 of the 4 on the board are randomly chosen each level to grant temporary ghost immunity (~7s), with a flashing warning near the end of the window. All 4 pellets still award points; only the 2 active ones trigger immunity. Eating ghosts is intentionally not implemented yet - passing through a scared ghost is currently a no-op.
 
 ## Planned improvements
 
-1. Add sound effects and background music.
-2. Add special effects: power food, scared ghosts, cherry
-3. More advanced ghost AI (scatter/chase modes, pathfinding)
-4. Redesign with proper start/game-over screens, instructions, and a full high score table.
-5. Randomly generate a symmetrical maze each game.
-6. Two-player mode.
+1. Ghost house - dedicated maze tiles, per-ghost state (`house` / `exiting` / `active`)
+2. Eating ghosts - collision-while-scared triggers an eaten state instead of a no-op, with combo scoring
+3. Pathfinding for eaten ghosts back to the house
+4. Chase/scatter AI modes
+5. Add sound effects and background music.
+6. Cherry / bonus fruit.
+7. Redesign with proper start/game-over screens, instructions, and a full high score table.
+8. Randomly generate a symmetrical maze each game.
+9. Two-player mode.
