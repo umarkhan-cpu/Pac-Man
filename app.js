@@ -24,10 +24,17 @@ let wallImage;
 
 // game elements
 let pacman;
+let door;
 const walls = new Set(); 
 const ghosts = new Set();
 const foods = new Set();
 const powFoods = new Set();
+const ghostHouse = {
+    startX: 8 * tileSize,
+    startY: 9 * tileSize,
+    endX: 11 * tileSize,   
+    endY: 10 * tileSize    
+};
 
 // game state variales
 const directions = ['U', 'D', 'L', 'R'];
@@ -37,12 +44,9 @@ let bestScore;
 let gameOver = false;
 let queuedDirection = null;
 let isPause = false;
-let isScared = false;
 const SCARED_DURATION = 140; // 7s at 50ms/tick
 const FLASH_COUNT = 40;
 let scaredTimer = 0;
-let isFlashing = false;
-let powFoodisWhite = true;
 
 // to update score & lives display
 let livesElement;
@@ -99,7 +103,8 @@ class Block {
     constructor(image, x, y, width, height) {
         this.image = image;
         this.normalImage = undefined; // for ghosts
-        this.isActive = false; // for power pellets
+        this.state = "active";
+        this.startState = "active";
 
         this.x = x;
         this.y = y;
@@ -129,14 +134,28 @@ class Block {
                 this.y -= this.velocityY;
                 this.direction = prevDirection;
                 this.updateVelocity();
-                return;
+                break;
             }
         }
 
-        if(!isWall) {
+        if (!isWall) {
             this.x -= this.velocityX;
             this.y -= this.velocityY;
         }
+
+        this.x += this.velocityX;
+        this.y += this.velocityY;
+
+        if (collision(this, door)) {
+            this.x -= this.velocityX;
+            this.y -= this.velocityY;
+            this.direction = prevDirection;
+            this.updateVelocity();
+            return;
+        }
+
+        this.x -= this.velocityX;
+        this.y -= this.velocityY;
     }
 
     updateVelocity() {
@@ -161,21 +180,8 @@ class Block {
     reset() {
         this.x = this.startX;
         this.y = this.startY;
+        this.state = this.startState;
     }
-}
-
-function activatePowFoods() {
-    const powFoodArr = Array.from(powFoods); // convert Set to array for indexing
-
-    let n1 = Math.floor(Math.random() * powFoodArr.length);
-    let n2 = Math.floor(Math.random() * powFoodArr.length);
-
-    while(n1 === n2) {
-        n2 = Math.floor(Math.random() * powFoodArr.length);
-    }
-
-    powFoodArr[n1].isActive = true;
-    powFoodArr[n2].isActive = true;
 }
 
 // create game elements with initial x & y positions
@@ -190,26 +196,36 @@ function loadMap() {
             const row = tileMap[r];
             const tileMapChar = row[c];
 
-            const x = c * tileSize;
+            // x & y determined based on position in the tile map
+            const x = c * tileSize; 
             const y = r  * tileSize;
 
             if (tileMapChar === 'X') { //block wall
                 const wall = new Block(wallImage, x, y, tileSize, tileSize);
                 walls.add(wall);  
             }
+            else if (tileMapChar === '-') { // ghost house door
+                door = new Block(null, x, y, tileSize, tileSize);
+            }
             else if (tileMapChar === 'b') { //blue ghost
                 const ghost = new Block(blueGhostImage, x, y, tileSize, tileSize);
                 ghost.normalImage = blueGhostImage;
+                ghost.state = "house";
+                ghost.startState = "house";
                 ghosts.add(ghost);
             }
             else if (tileMapChar === 'o') { //orange ghost
                 const ghost = new Block(orangeGhostImage, x, y, tileSize, tileSize);
                 ghost.normalImage = orangeGhostImage;
+                ghost.state = "house";
+                ghost.startState = "house";
                 ghosts.add(ghost);
             }
             else if (tileMapChar === 'p') { //pink ghost
                 const ghost = new Block(pinkGhostImage, x, y, tileSize, tileSize);
                 ghost.normalImage = pinkGhostImage;
+                ghost.state = "house";
+                ghost.startState = "house";
                 ghosts.add(ghost);
             }
             else if (tileMapChar === 'r') { //red ghost
@@ -231,7 +247,6 @@ function loadMap() {
             }
         }
     }
-    activatePowFoods(); // give 2 random power pellets the ability to make pac-man immune
 }
 
 function draw() {
@@ -242,8 +257,16 @@ function draw() {
         ctx.drawImage(wall.image, wall.x, wall.y, wall.width, wall.height);
     }
 
+    // draw ghost house door
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(door.x, door.y + tileSize / 2);
+    ctx.lineTo(door.x + tileSize, door.y + tileSize / 2);
+    ctx.stroke();
+
     // draw food
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "white";   
     for (let food of foods) {
         ctx.beginPath();
         ctx.arc(food.x, food.y, food.width / 2, 0, 2 * Math.PI);
@@ -276,14 +299,8 @@ function move() {
     pacman.x += pacman.velocityX;
     pacman.y += pacman.velocityY;
 
-    // check wall collisions
-    for (let wall of walls) {
-        if (collision(pacman, wall)) {
-            pacman.x -= pacman.velocityX;
-            pacman.y -= pacman.velocityY;
-            break;
-        }
-    }
+    // check for wall and door collisions
+    wallAndDoorCheck(pacman);
     
     if (pacman.direction === queuedDirection) { // successfull movement/turn
         queuedDirection = null;
@@ -298,11 +315,11 @@ function move() {
     for (let powFood of powFoods) {
         if (collision(pacman, powFood)) {
             powFoodEaten = powFood;
-            score += 50;
-            if (powFood.isActive) {
-                isScared = true;
-                scaredTimer = SCARED_DURATION; // resets even if already scared
-                for (let ghost of ghosts) {
+            score += 10;
+            scaredTimer = SCARED_DURATION; // resets even if already scared
+            for (let ghost of ghosts) {
+                if (ghost.state === "active") {
+                    ghost.state = "scared";
                     ghost.image = scaredGhostImage;
                 }
             }
@@ -311,62 +328,66 @@ function move() {
     }
     powFoods.delete(powFoodEaten);
 
-    // countdown scared timer
-    if (isScared) {
+    // countdown scared timer and check flashing condition
+    if (scaredTimer > 0) {
         scaredTimer--;
-        if (scaredTimer <= FLASH_COUNT && scaredTimer > 0 && scaredTimer % 4 === 0) {
-            if (isFlashing) {
-                for (let ghost of ghosts) {
-                    ghost.image = flashGhostImage;
-                }
-                isFlashing = false;
-            }
-            else {
-                for (let ghost of ghosts) {
-                    ghost.image = scaredGhostImage;
-                }
-                isFlashing = true;
-            }
-        } 
-        else if (scaredTimer === 0) {
+
+        if (scaredTimer === 0) {
             for (let ghost of ghosts) {
-                ghost.image = ghost.normalImage;
+                if (ghost.state === "scared" || ghost.state === "flashing") {
+                    ghost.image = ghost.normalImage;
+                    ghost.state = "active";
+                }
             }
-            isScared = false;
+        }
+        else if (scaredTimer <= FLASH_COUNT) {
+            const flashOn = Math.floor(scaredTimer / 4) % 2 === 0;
+            for (let ghost of ghosts) {
+                if (ghost.state === "scared" || ghost.state === "flashing") {
+                    ghost.state = flashOn ? "flashing" : "scared";
+                    ghost.image = flashOn ? flashGhostImage : scaredGhostImage;
+                }
+            }
         }
     }
 
     // ghost movement and collision checks
     for (let ghost of ghosts) {
-        if (collision(ghost, pacman) && !isScared) {
-            lives--;
-            if (lives === 0) {
-                gameOver = true;
-                if (score > bestScore) { // update best score
-                    bestScore = score;
-                    localStorage.setItem("pacmanBestScore", bestScore);
-                }
-                return;
+        if (collision(ghost, pacman)) {
+            if (ghost.state === "scared" || ghost.state === "flashing") {
+                score += 100;
+                ghost.x = ghostHouse.startX;
+                ghost.y = ghostHouse.startY;
+                ghost.image = ghost.normalImage;
+                ghost.state = "house"; // re-caged — free to exit through the door again
             }
-            resetPositions();
-        }
-        
-        if (ghost.x % tileSize === 0 && ghost.y % tileSize === 0) { // ghost is exactly centered on a tile
-            chooseValidGhostDir(ghost);
+            else if (ghost.state === "active") {
+                lives--;
+                if (lives === 0) {
+                    gameOver = true;
+                    if (score > bestScore) {
+                        bestScore = score;
+                        localStorage.setItem("pacmanBestScore", bestScore);
+                    }
+                    return;
+                }
+                resetPositions();
+            }
         }
 
-        // move ghost after chosing a valid direction
+        if (ghost.x % tileSize === 0 && ghost.y % tileSize === 0) {
+            if (ghost.state === "house") {
+                chooseHouseDir(ghost);
+            }
+            else {
+                chooseValidGhostDir(ghost);
+            }
+        }
+
         ghost.x += ghost.velocityX;
         ghost.y += ghost.velocityY;
 
-        for (let wall of walls) {
-            if (collision(ghost, wall)) 
-            {
-                ghost.x -= ghost.velocityX;
-                ghost.y -= ghost.velocityY;
-                break;
-            }
-        }
+        wallAndDoorCheck(ghost);
 
         detectBoundary(ghost);
     }
@@ -386,11 +407,11 @@ function move() {
     if (foods.size === 0) {
         loadMap(); 
         resetPositions();
-        isScared = false;
         scaredTimer = 0; 
     }
 }
 
+// randomly determine a ghost's direction at each tile
 function chooseValidGhostDir(ghost) {
     const row = ghost.y / tileSize;
     const col = ghost.x / tileSize;
@@ -446,6 +467,24 @@ function chooseValidGhostDir(ghost) {
     ghost.updateVelocity();
 }
 
+// to force the ghosts outside of the house
+function chooseHouseDir(ghost) {
+    const col = ghost.x / tileSize;
+    const doorCol = door.x / tileSize;
+
+    if (col === doorCol) {
+        ghost.direction = 'U'; 
+    }
+    else if (col < doorCol) {
+        ghost.direction = 'R';
+    }
+    else {
+        ghost.direction = 'L';
+    }
+
+    ghost.updateVelocity();
+}
+
 // collision detection function
 function collision(a, b) {
     return a.x < b.x + b.width &&
@@ -453,6 +492,36 @@ function collision(a, b) {
            a.y < b.y + b.height &&
            a.y + a.height > b.y;
 }
+
+function isInsideHouse(object) {
+    return object.x >= ghostHouse.startX && object.x < ghostHouse.endX &&
+           object.y >= ghostHouse.startY && object.y < ghostHouse.endY;
+}
+
+function wallAndDoorCheck(object) {
+    // check wall collisions
+    for (let wall of walls) {
+        if (collision(object, wall)) 
+        {
+            object.x -= object.velocityX;
+            object.y -= object.velocityY;
+            return;
+        }
+    }
+
+    const isBlockedByDoor = (object === pacman) || (object.state !== "house"); // block pac-man and 'active' ghosts
+
+    // check door collision
+    if (isBlockedByDoor && collision(object, door)) {
+        object.x -= object.velocityX;
+        object.y -= object.velocityY;
+        return;
+    }
+
+    if (object.state === "house" && !isInsideHouse(object) && !collision(object, door)) { // lock the door once the ghost is fully outside the house
+        object.state = "active";
+    }
+} 
 
 function detectBoundary(object) {
     // left boundary
@@ -523,6 +592,7 @@ function resetPositions() {
 
     for (let ghost of ghosts) {
         ghost.reset();
+        ghost.image = ghost.normalImage;
     }
 }
 
@@ -533,9 +603,7 @@ function pauseAndReset(evt) {
         lives = 3;
         score = 0;
         gameOver = false;
-        isPause = false;
         queuedDirection = null;
-        isScared = false;
         scaredTimer = 0;
         return;
     }

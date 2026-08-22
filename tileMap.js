@@ -1,4 +1,4 @@
-//X = wall, O = skip, P = pacman, ' ' = food, F = power food
+//X = wall, O = skip, P = pacman, ' ' = food, F = power food, - = ghost house door
 //Ghosts: b = blue, o = orange, p = pink, r = red
 
 const tileMap = [
@@ -9,9 +9,9 @@ const tileMap = [
     "X XX X XXXXX X XX X",
     "X    X       X    X",
     "XXXX XXXX XXXX XXXX",
-    "OOOX X       X XOOO",
-    "XXXX X XXrXX X XXXX",
-    "O       bpo       O",
+    "OOOX X   r   X XOOO",
+    "XXXX X XX-XX X XXXX",
+    "O      XbpoX      O",
     "XXXX X XXXXX X XXXX",
     "OOOX X       X XOOO",
     "XXXX X XXXXX X XXXX",

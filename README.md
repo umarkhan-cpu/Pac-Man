@@ -36,16 +36,16 @@ Then visit `http://localhost:8000`.
 
 Core gameplay (movement, collision, scoring, lives) is working. Game can be paused/resumed with Space. Best score persists across sessions via localStorage.
 
-Power pellets are in: 2 of the 4 on the board are randomly chosen each level to grant temporary ghost immunity (~7s), with a flashing warning near the end of the window. All 4 pellets still award points; only the 2 active ones trigger immunity. Eating ghosts is intentionally not implemented yet - passing through a scared ghost is currently a no-op.
+Ghost house is in: ghosts have a proper state machine (`house` / `active` / `scared` / `flashing`) instead of a single global flag. Caged ghosts navigate to the door's column and exit upward, then lock out of the house once fully clear. Power pellets now make **all** ghosts scared for ~7s (with a flashing warning near the end), and pellets are worth the same 10 points as a regular dot rather than a separate bonus.
+
+Eating ghosts is in too: touching a scared ghost eats it instead of costing a life. For now this **instantly teleports the ghost back to the house** and re-opens its door - there's no real pathfinding yet, so it doesn't visually travel back as "eyes." That's the next piece of work.
 
 ## Planned improvements
 
-1. Ghost house - dedicated maze tiles, per-ghost state (`house` / `exiting` / `active`)
-2. Eating ghosts - collision-while-scared triggers an eaten state instead of a no-op, with combo scoring
-3. Pathfinding for eaten ghosts back to the house
-4. Chase/scatter AI modes
-5. Add sound effects and background music.
-6. Cherry / bonus fruit.
-7. Redesign with proper start/game-over screens, instructions, and a full high score table.
-8. Randomly generate a symmetrical maze each game.
-9. Two-player mode.
+1. Pathfinding for eaten ghosts - replace the instant teleport with real movement back to the house as a pair of "eyes"
+2. Chase/scatter AI modes
+3. Add sound effects and background music.
+4. Cherry / bonus fruit.
+5. Redesign with proper start/game-over screens, instructions, and a full high score table.
+6. Randomly generate a symmetrical maze each game.
+7. Two-player mode.
