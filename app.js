@@ -183,6 +183,20 @@ class Block {
     }
 }
 
+function activatePowFoods() {
+    const powFoodArr = Array.from(powFoods); // convert Set to array for indexing
+
+    let n1 = Math.floor(Math.random() * powFoodArr.length);
+    let n2 = Math.floor(Math.random() * powFoodArr.length);
+
+    while(n1 === n2) {
+        n2 = Math.floor(Math.random() * powFoodArr.length);
+    }
+
+    powFoodArr[n1].isActive = true;
+    powFoodArr[n2].isActive = true;
+}
+
 // create game elements with initial x & y positions
 function loadMap() {
     walls.clear();
@@ -246,6 +260,7 @@ function loadMap() {
             }
         }
     }
+    activatePowFoods(); // activate 2 random power pellets
 }
 
 function draw() {
@@ -314,12 +329,14 @@ function move() {
     for (let powFood of powFoods) {
         if (collision(pacman, powFood)) {
             powFoodEaten = powFood;
-            score += 10;
-            scaredTimer = SCARED_DURATION; // resets even if already scared
-            for (let ghost of ghosts) {
-                if (ghost.state === "active") {
-                    ghost.state = "scared";
-                    ghost.image = scaredGhostImage;
+            score += 50;
+            if (powFood.isActive) {
+                scaredTimer = SCARED_DURATION; // resets even if already scared
+                for (let ghost of ghosts) {
+                    if (ghost.state === "active") {
+                        ghost.state = "scared";
+                        ghost.image = scaredGhostImage;
+                    }
                 }
             }
             break;
