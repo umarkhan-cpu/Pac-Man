@@ -38,9 +38,9 @@ Core gameplay (movement, collision, scoring, lives) is working. Game can be paus
 
 Ghost house is in: ghosts have a proper state machine (`house` / `active` / `scared` / `flashing`) instead of a single global flag. Caged ghosts navigate to the door's column and exit upward, then lock out of the house once fully clear. Power pellets now make **all** ghosts scared for ~7s (with a flashing warning near the end), and pellets are worth the same 10 points as a regular dot rather than a separate bonus.
 
-Eating ghosts is in too: touching a scared ghost eats it instead of costing a life. For now this **instantly teleports the ghost back to the house** and re-opens its door - there's no real pathfinding yet, so it doesn't visually travel back as "eyes." That's the next piece of work.
+Eating ghosts is in too: touching a scared ghost eats it instead of costing a life. For now this **instantly teleports the ghost back to the house** and re-opens its door - there's no real pathfinding yet, so it doesn't visually travel back as "eyes."
 
-## Planned improvements
+## Suggested improvements
 
 1. Pathfinding for eaten ghosts - replace the instant teleport with real movement back to the house as a pair of "eyes"
 2. Chase/scatter AI modes

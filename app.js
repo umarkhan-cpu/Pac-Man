@@ -102,7 +102,6 @@ function loadImages() {
 class Block {
     constructor(image, x, y, width, height) {
         this.image = image;
-        this.normalImage = undefined; // for ghosts
         this.state = "active";
         this.startState = "active";
 
